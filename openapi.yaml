@@ -1,0 +1,286 @@
+openapi: 3.0.0
+info:
+  title: Sistema de Gestão do Churras de Gato
+  description: API para gerenciamento de estoque de produtos para churrasco
+  version: 1.0.0
+  contact:
+    name: João Victor e Julio
+    email: contato@churrasdegato.com.br
+
+servers:
+  - url: http://localhost:5000
+    description: Servidor de Desenvolvimento
+  - url: https://churras-de-gato.vercel.app
+    description: Servidor de Produção
+
+paths:
+  /:
+    get:
+      summary: Informações da API
+      description: Retorna informações básicas da API
+      responses:
+        '200':
+          description: Informações da API obtidas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Api:
+                    type: string
+                    example: Sistema de gestão do churras de gato
+                  version:
+                    type: string
+                    example: 1.0.0
+                  autor:
+                    type: string
+                    example: João Victor e Julio
+
+  /estoque:
+    get:
+      summary: Listar todos os produtos
+      description: Retorna uma lista com todos os produtos cadastrados no estoque
+      responses:
+        '200':
+          description: Lista de produtos obtida com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Produto'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+    post:
+      summary: Cadastrar novo produto
+      description: Adiciona um novo produto ao estoque
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoInput'
+      responses:
+        '201':
+          description: Produto cadastrado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Produto cadastrado com sucesso
+                  id:
+                    type: integer
+                    example: 1
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+  /estoque/{id}:
+    patch:
+      summary: Atualizar produto
+      description: Atualiza um ou mais campos de um produto existente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                produto:
+                  type: string
+                  example: Picanha Angus
+                quantidade:
+                  type: integer
+                  example: 15
+                validade:
+                  type: string
+                  format: date
+                  example: 2025-12-31
+                marca:
+                  type: string
+                  example: Friboi
+                categoria:
+                  type: string
+                  example: Carnes Bovinas
+              minProperties: 1
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Produto atualizado com sucesso
+                  produto_id:
+                    type: integer
+                    example: 1
+                  campos_atualizados:
+                    type: array
+                    items:
+                      type: string
+                    example: ["quantidade", "produto"]
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+    delete:
+      summary: Deletar produto
+      description: Remove um produto do estoque pelo ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Produto excluído com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Produto excluído com sucesso!
+                  produto_id:
+                    type: integer
+                    example: 1
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+components:
+  schemas:
+    Produto:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do produto
+          example: 1
+        produto:
+          type: string
+          description: Nome do produto
+          example: Picanha Angus
+        quantidade:
+          type: integer
+          description: Quantidade em estoque
+          example: 10
+        validade:
+          type: string
+          format: date
+          description: Data de validade do produto
+          example: 2025-12-31
+        marca:
+          type: string
+          description: Marca do produto
+          example: Friboi
+        categoria:
+          type: string
+          description: Categoria do produto
+          example: Carnes Bovinas
+
+    ProdutoInput:
+      type: object
+      required:
+        - produto
+        - quantidade
+        - validade
+        - marca
+        - categoria
+      properties:
+        produto:
+          type: string
+          description: Nome do produto
+          example: Picanha Angus
+        quantidade:
+          type: integer
+          description: Quantidade em estoque
+          minimum: 0
+          example: 10
+        validade:
+          type: string
+          format: date
+          description: Data de validade do produto (formato YYYY-MM-DD)
+          example: 2025-12-31
+        marca:
+          type: string
+          description: Marca do produto
+          example: Friboi
+        categoria:
+          type: string
+          description: Categoria do produto
+          example: Carnes Bovinas
+
+    Erro:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro
+          example: Dados inválidos
+        message:
+          type: string
+          description: Mensagem adicional (quando aplicável)
+          example: error
+
+tags:
+  - name: Estoque
+    description: Operações relacionadas ao gerenciamento de estoque
+  - name: Informações
+    description: Informações básicas da API
